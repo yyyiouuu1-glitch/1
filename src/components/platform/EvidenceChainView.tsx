@@ -48,7 +48,7 @@ const QUICK_PHOTOS = [
   },
   {
     label: "完工参考定稿",
-    url: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=900&q=80"
+    url: "/home/hall-olive.jpg"
   }
 ];
 
@@ -147,19 +147,19 @@ export default function EvidenceChainView({
   }
 
   return (
-    <div className={compact ? "px-4 py-5" : "mx-auto max-w-[1160px] px-6 py-10"}>
+    <div className={compact ? "space-y-8 px-5 py-8" : "mx-auto max-w-[1160px] space-y-10 px-6 py-14"}>
       {!compact && (
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h1 className="text-[38px] font-semibold leading-[1.08] tracking-[-0.025em] text-[#1d1d1f]">
-              全流程数字证据链
+        <header className="max-w-[36rem] space-y-6">
+          <div className="space-y-3">
+            <h1 className="text-[48px] font-semibold leading-[1.05] tracking-[-0.03em] text-[#1d1d1f]">
+              数字证据链
             </h1>
-            <p className="mt-2 text-[15px] text-[#6e6e73]">
-              从首次谈单、量房原况到水电隐蔽验收，每一句承诺与现场照片均自动编号存证，交付零扯皮。
+            <p className="text-[17px] leading-7 text-[#6e6e73]">
+              谈单、量房、隐蔽验收，每条承诺和照片都留在同一份档案里。
             </p>
           </div>
           {activeLead && (
-            <div className="flex items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-3">
               <button
                 type="button"
                 onClick={copyWeChatReceipt}
@@ -182,7 +182,7 @@ export default function EvidenceChainView({
               </button>
             </div>
           )}
-        </div>
+        </header>
       )}
 
       <div className={compact ? "" : "grid grid-cols-12 items-start gap-6"}>
@@ -190,12 +190,12 @@ export default function EvidenceChainView({
         {showList && (
           <aside className={compact ? "space-y-3" : "col-span-4 space-y-3"}>
             {compact && (
-              <div className="mb-4">
-                <h1 className="text-[26px] font-semibold tracking-[-0.025em] text-[#1d1d1f]">
-                  证据链档案
+              <div className="mb-8 max-w-[34rem] space-y-3">
+                <h1 className="text-[34px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#1d1d1f]">
+                  证据链
                 </h1>
-                <p className="mt-1 text-[13px] text-[#6e6e73]">
-                  按客户查看全部沟通承诺、实拍原况与确认状态
+                <p className="text-[17px] leading-7 text-[#6e6e73]">
+                  按客户查看承诺、实拍和确认状态。
                 </p>
               </div>
             )}

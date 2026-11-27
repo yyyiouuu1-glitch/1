@@ -56,7 +56,7 @@ export default function OverviewSection({ onNavigate, stats }: OverviewProps) {
           >
             <div className="relative h-80 w-full overflow-hidden">
               <img
-                src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1400&q=85"
+                src="/home/hall-oak.jpg"
                 alt="空间变装"
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />

@@ -2,7 +2,7 @@ export type PackageId = "meilijia" | "zunguijia";
 
 export type RoomKey = "厨房空间" | "卫浴空间" | "客餐厅" | "卧室";
 
-export const ROOM_KEYS: RoomKey[] = ["厨房空间", "卫浴空间", "客餐厅", "卧室"];
+export const ROOM_KEYS: RoomKey[] = ["客餐厅", "厨房空间", "卫浴空间", "卧室"];
 
 export type RoomVisualMeta = {
   image: string;
@@ -13,51 +13,51 @@ export const ROOM_VISUALS: Record<PackageId, Record<RoomKey, RoomVisualMeta>> = 
   meilijia: {
     厨房空间: {
       image:
-        "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1200&q=85",
+        "/home/cream-kitchen.jpg",
       caption: "3m 地柜 + 2m 吊柜石英石台面 · 东鹏/冠珠/马可波罗厨砖 · 科顺 2.4m 防水"
     },
     卫浴空间: {
       image:
-        "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=85",
+        "/home/cream-bath.jpg",
       caption: "浴室柜/座便器/恒温花洒/淋浴隔断全配 · 2.4m 高标准防水 · 集成吊顶不限量"
     },
     客餐厅: {
       image:
-        "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=85",
+        "/home/hall-cream.jpg",
       caption: "800×800 一线大地砖满铺 · 踢脚线/三棵树净味乳胶漆/开关插座全部不限量"
     },
     卧室: {
       image:
-        "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1200&q=85",
+        "/home/cream-bed.jpg",
       caption: "800×800 瓷砖或木地板任选 · 金狮顿/美林小镇环保实木复合门 · 净味墙面漆"
     }
   },
   zunguijia: {
     厨房空间: {
       image:
-        "https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=1200&q=85",
+        "/home/italian-kitchen.jpg",
       caption: "升级欧派/索菲亚 4m 地柜 + 2m 吊柜 · 2.0 极窄长虹玻璃推拉门 · 奥普大板吊顶"
     },
     卫浴空间: {
       image:
-        "https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=1200&q=85",
+        "/home/italian-bath.jpg",
       caption: "全面升级恒洁/尚高/贝朗卫浴套件 · 朗斯淋浴隔断 · 奥普吊顶及浴霸"
     },
     客餐厅: {
       image:
-        "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=85",
+        "/home/hall-walnut.jpg",
       caption: "马可波罗/冠珠/东鹏 800×800 满铺 · 辉瑞康飘窗石 · 西门子/施耐德/公牛开关"
     },
     卧室: {
       image:
-        "https://images.unsplash.com/photo-1617325247661-675ab4b64ae2?auto=format&fit=crop&w=1200&q=85",
+        "/home/italian-bed.jpg",
       caption: "升级大自然木地板（砖木任选）· 大自然/梦天品牌木门 · 三棵树/多乐士乳胶漆"
     }
   }
 };
 
 export const AUX_BANNER_IMAGE =
-  "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=85";
+  "/home/hall-stone.jpg";
 
 export type PackageMaterialItem = {
   id: string;
@@ -127,7 +127,7 @@ export const INITIAL_PACKAGES: ProductPackage[] = [
     extraDoorPrice: 1098,
     baseLayout: "2室2厅1厨1卫（单卫标配）",
     cover:
-      "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1400&q=85",
+      "/home/hall-cream.jpg",
     version: "v10.28",
     updatedAt: "2026-10-28",
     highlights: [
@@ -220,7 +220,7 @@ export const INITIAL_PACKAGES: ProductPackage[] = [
     extraDoorPrice: 1850,
     baseLayout: "2室2厅1厨1卫（含2个飘窗石）",
     cover:
-      "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1400&q=85",
+      "/home/hall-walnut.jpg",
     version: "v10.28",
     updatedAt: "2026-10-28",
     highlights: [

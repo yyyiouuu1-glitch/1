@@ -13,18 +13,37 @@ export interface Community {
   created_at?: string;
 }
 
+export interface CompetitorColumn {
+  key: string;
+  name: string;
+  hint: string;
+  ours?: boolean;
+}
+
+export interface CompetitorRow {
+  item: string;
+  cells: Record<string, string>;
+}
+
+export interface CompetitorCompare {
+  note: string;
+  columns: CompetitorColumn[];
+  rows: CompetitorRow[];
+}
+
 export interface MaterialContentJson {
   xiaohongshu?: string;
   douyin?: string;
   moments?: string;
   sales_script?: string;
   prompt_json?: Record<string, unknown>;
+  compare?: CompetitorCompare;
 }
 
 export interface Material {
   id: string;
   title: string;
-  type: "case" | "before_after" | "poster" | "copywriting";
+  type: "case" | "before_after" | "poster" | "copywriting" | "competitor";
   visibility: Visibility;
   community_name: string;
   style: string;

@@ -93,7 +93,30 @@ export type SiteBroadcast = {
   highlight: string;
   checks: string[];
   photo: string;
+  lat: number;
+  lng: number;
   canVisit: boolean;
+};
+
+export type SitePatrolMessage = {
+  id: string;
+  inspector: string;
+  community: string;
+  unit: string;
+  manager: string;
+  stage: string;
+  sentAt: string;
+  photos: string[];
+};
+
+export type SiteInspectionShot = {
+  id: string;
+  siteId: string;
+  item: string;
+  inspector: string;
+  sentAt: string;
+  note: string;
+  photo: string;
 };
 
 export const MODULES: {
@@ -116,7 +139,7 @@ export const MODULES: {
     label: "赋能签单台",
     nav: "签单台",
     tag: "核心",
-    blurb: "对客演示/内部口径双模式、10秒闭口报价器、异议反击库与当场留痕。"
+    blurb: "按美丽家、尊贵家官方配置快速核算闭口报价，支持个性化选配与报价记录留存。"
   },
   {
     id: "evidence",
@@ -127,10 +150,10 @@ export const MODULES: {
   },
   {
     id: "sites",
-    label: "同小区工地",
-    nav: "看工地",
+    label: "工地管理",
+    nav: "工地",
     tag: "推荐",
-    blurb: "水电/泥木实景巡检播报，顾问可一键邀约业主周末实地看工艺。"
+    blurb: "管理我们的在施工地。上方是浅色佛山地图，下面是质检巡检发回的工地照片。"
   },
   {
     id: "communities",
@@ -176,9 +199,9 @@ export const PRESETS: {
   {
     id: "field",
     label: "一线签单版",
-    short: "素材库 · 签单台 · 证据链",
-    detail: "专为顾问与设计师打造的轻量小程序：找实景、算闭口、谈单、留存证一气呵成。",
-    modules: ["library", "close", "evidence"]
+    short: "素材库 · 签单台 · 证据链 · 工地",
+    detail: "专为顾问与设计师打造的轻量小程序：找实景、算闭口、谈单、留存证，并在工地管理里打开大屏给业主看。",
+    modules: ["library", "close", "evidence", "sites"]
   },
   {
     id: "studio",
@@ -432,7 +455,7 @@ export const OBJECTION_CARDS: ObjectionCard[] = [
     question: "“水电封在墙里以后出问题怎么办？”",
     reply:
       "所有工地公司直管不转包，水电完工必须拍全景定位图进入您的专属证据链档案，48 小时闭水试验业主本人确认签字后才进下一道工序。",
-    proof: "直接打开「看工地」展示保利天珺水电验收实拍"
+    proof: "打开「工地管理」里的大屏，展示保利天珺水电验收实拍"
   },
   {
     id: "obj-3",
@@ -448,7 +471,7 @@ export const SITE_BROADCASTS: SiteBroadcast[] = [
   {
     id: "site-1",
     community: "保利天珺",
-    unit: "3栋 1802 · 128㎡",
+    unit: "3栋 1802",
     areaSqm: 128,
     stage: "水电验收通过",
     progress: 38,
@@ -457,12 +480,14 @@ export const SITE_BROADCASTS: SiteBroadcast[] = [
     highlight: "强弱电分色横平竖直排布，交叉处全包锡箔防干扰，打压测试 0.8MPa 稳压 30 分钟零掉压。",
     checks: ["强弱电间距达标", "水管打压通过", "全景 VR 留档完成"],
     photo: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=85",
+    lat: 23.082,
+    lng: 113.14,
     canVisit: true
   },
   {
     id: "site-2",
     community: "中海寰宇天下",
-    unit: "9栋 1105 · 98㎡",
+    unit: "9栋 1105",
     areaSqm: 98,
     stage: "泥木施工中",
     progress: 64,
@@ -471,12 +496,14 @@ export const SITE_BROADCASTS: SiteBroadcast[] = [
     highlight: "卫生间 48 小时闭水试验已由业主视频确认无渗漏；全房 750×1500 柔光砖薄贴通铺完成 85%。",
     checks: ["48h 闭水已签认", "墙砖空鼓率 < 1%", "玄关借位放线复核"],
     photo: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=85",
+    lat: 23.0438,
+    lng: 113.1518,
     canVisit: true
   },
   {
     id: "site-3",
     community: "万科金域中央",
-    unit: "2栋 2201 · 108㎡",
+    unit: "2栋 2201",
     areaSqm: 108,
     stage: "软装保洁交付",
     progress: 96,
@@ -485,7 +512,564 @@ export const SITE_BROADCASTS: SiteBroadcast[] = [
     highlight: "全屋柜体收口打胶顺直，空气质量第三方复检甲醛 0.03mg/m³，优于国标要求，本周六正式交钥匙。",
     checks: ["甲醛复检达标", "全屋灯具调光完成", "零增项结算签字"],
     photo: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1200&q=85",
+    lat: 23.0623,
+    lng: 113.1735,
     canVisit: true
+  },
+  {
+    id: "site-4",
+    community: "花曼丽舍",
+    unit: "10栋 1104",
+    areaSqm: 0,
+    stage: "泥工",
+    progress: 52,
+    manager: "何海林",
+    updatedAt: "今天 14:20",
+    highlight: "地面成品保护已铺到位，泥工现场由项目经理何海林跟进。",
+    checks: ["成品保护已铺", "泥工进行中"],
+    photo: "/inspections/huaman-1.jpg",
+    lat: 23.0365,
+    lng: 113.0865,
+    canVisit: true
+  },
+  {
+    id: "site-1b",
+    community: "保利天珺",
+    unit: "5栋 902",
+    areaSqm: 109,
+    stage: "泥工",
+    progress: 46,
+    manager: "黄工长（12年直管）",
+    updatedAt: "昨天 16:10",
+    highlight: "客厅地砖已铺过半，卫生间找平完成，准备闭水。",
+    checks: ["地砖铺贴过半", "卫生间找平完成"],
+    photo: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1200&q=85",
+    lat: 23.082,
+    lng: 113.14,
+    canVisit: true
+  },
+  {
+    id: "site-1c",
+    community: "保利天珺",
+    unit: "8栋 2601",
+    areaSqm: 143,
+    stage: "拆改",
+    progress: 18,
+    manager: "黄工长（12年直管）",
+    updatedAt: "今天 09:05",
+    highlight: "非承重墙拆改完成，楼道和电梯厅成品保护已铺好。",
+    checks: ["拆改范围已复核", "楼道成品保护到位"],
+    photo: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=85",
+    lat: 23.082,
+    lng: 113.14,
+    canVisit: true
+  },
+  {
+    id: "site-2b",
+    community: "中海寰宇天下",
+    unit: "2栋 603",
+    areaSqm: 89,
+    stage: "水电",
+    progress: 31,
+    manager: "梁工长（9年直管）",
+    updatedAt: "今天 10:20",
+    highlight: "强电箱定位完成，冷热水管分色铺设，打压待业主到场。",
+    checks: ["强电箱定位完成", "冷热水管分色"],
+    photo: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1200&q=85",
+    lat: 23.0438,
+    lng: 113.1518,
+    canVisit: true
+  },
+  {
+    id: "site-2c",
+    community: "中海寰宇天下",
+    unit: "12栋 1801",
+    areaSqm: 126,
+    stage: "木作",
+    progress: 71,
+    manager: "梁工长（9年直管）",
+    updatedAt: "昨天 15:30",
+    highlight: "吊顶龙骨验收通过，柜体已进场，准备复尺。",
+    checks: ["吊顶龙骨已验收", "柜体进场待复尺"],
+    photo: "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1200&q=85",
+    lat: 23.0438,
+    lng: 113.1518,
+    canVisit: true
+  },
+  {
+    id: "site-3b",
+    community: "万科金域中央",
+    unit: "7栋 1103",
+    areaSqm: 96,
+    stage: "泥工",
+    progress: 55,
+    manager: "周总监（全案巡检）",
+    updatedAt: "今天 08:40",
+    highlight: "厨卫墙砖铺贴完成，美缝前空鼓抽检通过。",
+    checks: ["墙砖铺贴完成", "空鼓抽检通过"],
+    photo: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=85",
+    lat: 23.0623,
+    lng: 113.1735,
+    canVisit: true
+  },
+  {
+    id: "site-3c",
+    community: "万科金域中央",
+    unit: "1栋 502",
+    areaSqm: 118,
+    stage: "水电",
+    progress: 27,
+    manager: "周总监（全案巡检）",
+    updatedAt: "昨天 18:20",
+    highlight: "开槽完成，线管固定，回填前已拍照留档。",
+    checks: ["开槽深度达标", "回填前已留档"],
+    photo: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1200&q=85",
+    lat: 23.0623,
+    lng: 113.1735,
+    canVisit: true
+  },
+  {
+    id: "site-4b",
+    community: "花曼丽舍",
+    unit: "6栋 802",
+    areaSqm: 0,
+    stage: "水电",
+    progress: 34,
+    manager: "何海林",
+    updatedAt: "昨天 11:30",
+    highlight: "水电开槽和线管固定完成，水管打压安排在明天。",
+    checks: ["线管固定完成", "打压待安排"],
+    photo: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1200&q=85",
+    lat: 23.0365,
+    lng: 113.0865,
+    canVisit: true
+  },
+  {
+    id: "site-4c",
+    community: "花曼丽舍",
+    unit: "3栋 1502",
+    areaSqm: 0,
+    stage: "木工",
+    progress: 61,
+    manager: "何海林",
+    updatedAt: "今天 09:50",
+    highlight: "吊顶封板前龙骨已调平，柜体复尺完成。",
+    checks: ["龙骨已调平", "柜体复尺完成"],
+    photo: "https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&w=1200&q=85",
+    lat: 23.0365,
+    lng: 113.0865,
+    canVisit: true
+  }
+];
+
+export const SITE_INSPECTIONS: SiteInspectionShot[] = [
+  {
+    id: "shot-h1",
+    siteId: "site-4",
+    item: "成品保护",
+    inspector: "李嘉辉",
+    sentAt: "今天 14:20",
+    note: "花曼丽舍10-1104 地面成品保护已铺，泥工进行中。",
+    photo: "/inspections/huaman-1.jpg"
+  },
+  {
+    id: "shot-h2",
+    siteId: "site-4",
+    item: "走廊保护",
+    inspector: "李嘉辉",
+    sentAt: "今天 14:20",
+    note: "走廊保护膜铺到墙根。",
+    photo: "/inspections/huaman-2.jpg"
+  },
+  {
+    id: "shot-h3",
+    siteId: "site-4",
+    item: "地面基层",
+    inspector: "李嘉辉",
+    sentAt: "今天 14:20",
+    note: "未铺保护的地面基层，泥工待继续。",
+    photo: "/inspections/huaman-3.jpg"
+  },
+  {
+    id: "shot-1",
+    siteId: "site-1",
+    item: "强弱电分色",
+    inspector: "陈质检",
+    sentAt: "今天 11:06",
+    note: "线管横平竖直，强弱电间距大于 15cm，交叉处已包锡箔。",
+    photo: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-2",
+    siteId: "site-1",
+    item: "水管打压",
+    inspector: "陈质检",
+    sentAt: "今天 11:18",
+    note: "0.8MPa 稳压 30 分钟，压力表零掉压。",
+    photo: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-3",
+    siteId: "site-1",
+    item: "开槽回填前",
+    inspector: "吴质检",
+    sentAt: "今天 09:40",
+    note: "开槽深度达标，线管固定完成，回填前留档。",
+    photo: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-4",
+    siteId: "site-2",
+    item: "48 小时闭水",
+    inspector: "林质检",
+    sentAt: "昨天 17:40",
+    note: "卫生间闭水满 48 小时，门口外侧无渗漏，业主已视频确认。",
+    photo: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-5",
+    siteId: "site-2",
+    item: "墙砖空鼓抽检",
+    inspector: "林质检",
+    sentAt: "昨天 16:20",
+    note: "客厅墙砖抽检空鼓率低于 1%，薄贴完成约 85%。",
+    photo: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-6",
+    siteId: "site-2",
+    item: "防水涂刷",
+    inspector: "吴质检",
+    sentAt: "昨天 10:15",
+    note: "厨卫墙面防水上翻高度达标，第二遍涂刷已拍照。",
+    photo: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-7",
+    siteId: "site-3",
+    item: "柜体收口",
+    inspector: "周质检",
+    sentAt: "昨天 14:02",
+    note: "全屋柜体打胶顺直，见光面无崩边。",
+    photo: "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-8",
+    siteId: "site-3",
+    item: "空气复检",
+    inspector: "周质检",
+    sentAt: "昨天 13:30",
+    note: "第三方复检甲醛 0.03mg/m³，报告已拍照回传。",
+    photo: "https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-9",
+    siteId: "site-3",
+    item: "灯具通电",
+    inspector: "陈质检",
+    sentAt: "昨天 11:50",
+    note: "无主灯回路逐路点亮，调光正常。",
+    photo: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-1b1",
+    siteId: "site-1b",
+    item: "地砖铺贴",
+    inspector: "陈质检",
+    sentAt: "昨天 16:02",
+    note: "保利天珺5栋902 客厅地砖铺贴过半，缝隙顺直。",
+    photo: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-1b2",
+    siteId: "site-1b",
+    item: "卫生间找平",
+    inspector: "吴质检",
+    sentAt: "昨天 15:20",
+    note: "卫生间地面找平完成，准备闭水。",
+    photo: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-1c1",
+    siteId: "site-1c",
+    item: "拆改复核",
+    inspector: "吴质检",
+    sentAt: "今天 09:00",
+    note: "保利天珺8栋2601 拆改范围与图纸一致，垃圾已清运。",
+    photo: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-1c2",
+    siteId: "site-1c",
+    item: "楼道保护",
+    inspector: "陈质检",
+    sentAt: "今天 08:40",
+    note: "电梯厅和楼道成品保护已铺到户门。",
+    photo: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-2b1",
+    siteId: "site-2b",
+    item: "强电箱定位",
+    inspector: "林质检",
+    sentAt: "今天 10:12",
+    note: "中海寰宇天下2栋603 强电箱定位完成，回路标识清楚。",
+    photo: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-2b2",
+    siteId: "site-2b",
+    item: "冷热水分色",
+    inspector: "吴质检",
+    sentAt: "今天 09:48",
+    note: "冷热水管分色铺设，接头已拍照。",
+    photo: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-2c1",
+    siteId: "site-2c",
+    item: "吊顶龙骨",
+    inspector: "林质检",
+    sentAt: "昨天 15:22",
+    note: "中海寰宇天下12栋1801 吊顶龙骨调平，封板前验收通过。",
+    photo: "https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-2c2",
+    siteId: "site-2c",
+    item: "柜体进场",
+    inspector: "周质检",
+    sentAt: "昨天 14:40",
+    note: "柜体进场，复尺单已交给木工。",
+    photo: "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-3b1",
+    siteId: "site-3b",
+    item: "墙砖铺贴",
+    inspector: "周质检",
+    sentAt: "今天 08:32",
+    note: "万科金域中央7栋1103 厨卫墙砖铺完，阳角顺直。",
+    photo: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-3b2",
+    siteId: "site-3b",
+    item: "空鼓抽检",
+    inspector: "陈质检",
+    sentAt: "今天 08:10",
+    note: "墙砖空鼓抽检通过，可以安排美缝。",
+    photo: "https://images.unsplash.com/photo-1560185007-5f0bb1866cab?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-3c1",
+    siteId: "site-3c",
+    item: "开槽留档",
+    inspector: "陈质检",
+    sentAt: "昨天 18:10",
+    note: "万科金域中央1栋502 开槽完成，回填前已拍照。",
+    photo: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-3c2",
+    siteId: "site-3c",
+    item: "线管固定",
+    inspector: "吴质检",
+    sentAt: "昨天 17:40",
+    note: "线管固定间距达标，强弱电分开走。",
+    photo: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-4b1",
+    siteId: "site-4b",
+    item: "线管固定",
+    inspector: "李嘉辉",
+    sentAt: "昨天 11:20",
+    note: "花曼丽舍6栋802 线管固定完成，打压安排在明天。",
+    photo: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-4b2",
+    siteId: "site-4b",
+    item: "水电开槽",
+    inspector: "李嘉辉",
+    sentAt: "昨天 10:40",
+    note: "开槽顺直，深度符合交底。",
+    photo: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-4c1",
+    siteId: "site-4c",
+    item: "龙骨调平",
+    inspector: "李嘉辉",
+    sentAt: "今天 09:42",
+    note: "花曼丽舍3栋1502 吊顶龙骨已调平，准备封板。",
+    photo: "https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&w=1400&q=85"
+  },
+  {
+    id: "shot-4c2",
+    siteId: "site-4c",
+    item: "柜体复尺",
+    inspector: "李嘉辉",
+    sentAt: "今天 09:15",
+    note: "柜体复尺完成，尺寸与现场一致。",
+    photo: "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1400&q=85"
+  }
+];
+
+export const SITE_PATROLS: SitePatrolMessage[] = [
+  {
+    id: "patrol-huaman",
+    inspector: "壹品装饰工程部质检李嘉辉",
+    community: "花曼丽舍",
+    unit: "10栋 1104",
+    manager: "何海林",
+    stage: "泥工",
+    sentAt: "今天 14:20",
+    photos: ["/inspections/huaman-1.jpg", "/inspections/huaman-2.jpg", "/inspections/huaman-3.jpg"]
+  },
+  {
+    id: "patrol-tianjun",
+    inspector: "壹品装饰工程部质检陈工",
+    community: "保利天珺",
+    unit: "3栋 1802",
+    manager: "黄工长",
+    stage: "水电",
+    sentAt: "今天 11:18",
+    photos: [
+      "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1400&q=85",
+      "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1400&q=85"
+    ]
+  },
+  {
+    id: "patrol-zhonghai",
+    inspector: "壹品装饰工程部质检林工",
+    community: "中海寰宇天下",
+    unit: "9栋 1105",
+    manager: "梁工长",
+    stage: "泥木",
+    sentAt: "昨天 17:40",
+    photos: [
+      "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1400&q=85",
+      "https://images.unsplash.com/photo-1560185007-5f0bb1866cab?auto=format&fit=crop&w=1400&q=85"
+    ]
+  },
+  {
+    id: "patrol-wanke",
+    inspector: "壹品装饰工程部质检周工",
+    community: "万科金域中央",
+    unit: "2栋 2201",
+    manager: "周总监",
+    stage: "软装保洁",
+    sentAt: "昨天 14:02",
+    photos: [
+      "https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&w=1400&q=85",
+      "https://images.unsplash.com/photo-1600585152220-90363fe7e115?auto=format&fit=crop&w=1400&q=85"
+    ]
+  },
+  {
+    id: "patrol-tianjun-5",
+    inspector: "壹品装饰工程部质检陈工",
+    community: "保利天珺",
+    unit: "5栋 902",
+    manager: "黄工长",
+    stage: "泥工",
+    sentAt: "昨天 16:10",
+    photos: [
+      "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1400&q=85",
+      "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1400&q=85"
+    ]
+  },
+  {
+    id: "patrol-tianjun-8",
+    inspector: "壹品装饰工程部质检吴工",
+    community: "保利天珺",
+    unit: "8栋 2601",
+    manager: "黄工长",
+    stage: "拆改",
+    sentAt: "今天 09:05",
+    photos: [
+      "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1400&q=85",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1400&q=85"
+    ]
+  },
+  {
+    id: "patrol-zhonghai-2",
+    inspector: "壹品装饰工程部质检林工",
+    community: "中海寰宇天下",
+    unit: "2栋 603",
+    manager: "梁工长",
+    stage: "水电",
+    sentAt: "今天 10:20",
+    photos: [
+      "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1400&q=85",
+      "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1400&q=85"
+    ]
+  },
+  {
+    id: "patrol-zhonghai-12",
+    inspector: "壹品装饰工程部质检林工",
+    community: "中海寰宇天下",
+    unit: "12栋 1801",
+    manager: "梁工长",
+    stage: "木作",
+    sentAt: "昨天 15:30",
+    photos: [
+      "https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&w=1400&q=85",
+      "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1400&q=85"
+    ]
+  },
+  {
+    id: "patrol-wanke-7",
+    inspector: "壹品装饰工程部质检周工",
+    community: "万科金域中央",
+    unit: "7栋 1103",
+    manager: "周总监",
+    stage: "泥工",
+    sentAt: "今天 08:40",
+    photos: [
+      "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1400&q=85",
+      "https://images.unsplash.com/photo-1560185007-5f0bb1866cab?auto=format&fit=crop&w=1400&q=85"
+    ]
+  },
+  {
+    id: "patrol-wanke-1",
+    inspector: "壹品装饰工程部质检陈工",
+    community: "万科金域中央",
+    unit: "1栋 502",
+    manager: "周总监",
+    stage: "水电",
+    sentAt: "昨天 18:20",
+    photos: [
+      "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1400&q=85",
+      "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&w=1400&q=85"
+    ]
+  },
+  {
+    id: "patrol-huaman-6",
+    inspector: "壹品装饰工程部质检李嘉辉",
+    community: "花曼丽舍",
+    unit: "6栋 802",
+    manager: "何海林",
+    stage: "水电",
+    sentAt: "昨天 11:30",
+    photos: [
+      "https://images.unsplash.com/photo-1581094794329-c8112a89af12?auto=format&fit=crop&w=1400&q=85",
+      "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1400&q=85"
+    ]
+  },
+  {
+    id: "patrol-huaman-3",
+    inspector: "壹品装饰工程部质检李嘉辉",
+    community: "花曼丽舍",
+    unit: "3栋 1502",
+    manager: "何海林",
+    stage: "木工",
+    sentAt: "今天 09:50",
+    photos: [
+      "https://images.unsplash.com/photo-1615874959474-d609969a20ed?auto=format&fit=crop&w=1400&q=85",
+      "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1400&q=85"
+    ]
   }
 ];
 
@@ -704,5 +1288,6 @@ export const MATERIAL_TYPE_LABEL: Record<string, string> = {
   before_after: "实景对比",
   case: "实景案例",
   poster: "活动海报",
-  copywriting: "签单话术"
+  copywriting: "签单话术",
+  competitor: "竞品对比"
 };

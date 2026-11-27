@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { demoStore } from "@/lib/mock-data";
 
-const DEFAULT_COVER =
-  "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1200&q=85";
+const DEFAULT_COVER = "/home/hall-oak.jpg";
 
 function safeHttpsUrl(value: unknown, fallback: string) {
   if (typeof value !== "string" || !value.trim()) return fallback;

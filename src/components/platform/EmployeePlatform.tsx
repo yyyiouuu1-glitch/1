@@ -5,7 +5,6 @@ import {
   ArrowLeftRight,
   ArrowRight,
   ArrowUpRight,
-  Award,
   Briefcase,
   Building2,
   Calculator,
@@ -19,7 +18,6 @@ import {
   HardHat,
   Images,
   LayoutGrid,
-  MapPin,
   Monitor,
   MoreHorizontal,
   ShieldCheck,
@@ -51,13 +49,14 @@ import {
   ModuleId,
   PRESETS,
   PresetId,
-  SITE_BROADCASTS,
   ScreenId,
   ViewMode,
   matchPreset,
   moduleById,
   seedEvidence
 } from "@/lib/platform";
+import { ACTIVE_SITES } from "@/lib/active-sites";
+import { COMPLETED_SITES } from "@/lib/completed-sites";
 import { Community, Lead, Material } from "@/lib/types";
 
 const STORAGE_KEY = "yipin-employee-framework-v3";
@@ -170,9 +169,14 @@ export default function EmployeePlatform({
         const saved = JSON.parse(raw) as { enabled?: ModuleId[]; view?: ViewMode };
         if (saved.enabled?.length) {
           const valid = saved.enabled.filter((id) => MODULES.some((m) => m.id === id));
-          if (valid.length) {
-            setEnabled(valid);
-            setPreset(matchPreset(valid));
+          const legacyField: ModuleId[] = ["library", "close", "evidence"];
+          const next =
+            valid.length === legacyField.length && legacyField.every((id) => valid.includes(id))
+              ? [...valid, "sites" as ModuleId]
+              : valid;
+          if (next.length) {
+            setEnabled(next);
+            setPreset(matchPreset(next));
           }
         }
         if (saved.view === "phone" || saved.view === "desk") setView(saved.view);
@@ -181,7 +185,12 @@ export default function EmployeePlatform({
       if (savedPkgs) {
         const parsed = JSON.parse(savedPkgs) as ProductPackage[];
         if (Array.isArray(parsed) && parsed.length === 2) {
-          setPackages(parsed);
+          setPackages(
+            parsed.map((item) => {
+              const fresh = INITIAL_PACKAGES.find((pkg) => pkg.id === item.id);
+              return fresh ? { ...item, cover: fresh.cover } : item;
+            })
+          );
         }
       }
     } catch {
@@ -192,12 +201,20 @@ export default function EmployeePlatform({
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ preset, enabled, view }));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ preset, enabled, view }));
+    } catch {
+      /* ignore storage errors */
+    }
   }, [hydrated, preset, enabled, view]);
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(PACKAGES_STORAGE_KEY, JSON.stringify(packages));
+    try {
+      localStorage.setItem(PACKAGES_STORAGE_KEY, JSON.stringify(packages));
+    } catch {
+      /* ignore storage errors */
+    }
   }, [hydrated, packages]);
 
   useEffect(() => {
@@ -402,7 +419,7 @@ export default function EmployeePlatform({
         <div className="min-h-screen px-6 pb-10 pt-5">
           <div className="mx-auto mb-6 flex max-w-[1160px] flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src="/logo.png" alt="壹品整装" className="h-6 w-auto object-contain" />
+              <img src="/brand/yipin-logo-h.png" alt="壹品整装" className="h-6 w-auto object-contain" />
               <span className="h-4 w-px bg-black/10" />
               <span className="text-[13px] font-medium text-[#6e6e73]">
                 员工小程序真机预览 · iOS 液态玻璃交互
@@ -539,7 +556,7 @@ function AppViewport(props: {
   onNotify: (msg: string) => void;
 }) {
   const bottomTabs =
-    props.tabs.length <= 4 ? props.tabs : ([...props.tabs.slice(0, 3), "more"] as ScreenId[]);
+    props.tabs.length <= 5 ? props.tabs : ([...props.tabs.slice(0, 4), "more"] as ScreenId[]);
   const activeBottom = bottomTabs.includes(props.screen)
     ? props.screen
     : props.screen === "today"
@@ -561,10 +578,11 @@ function AppViewport(props: {
             <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-4 px-6">
               <button
                 type="button"
+                aria-label="回到首页"
                 onClick={() => props.onScreen("today")}
                 className="ios-press flex items-center gap-2.5 text-left"
               >
-                <img src="/logo.png" alt="壹品整装" className="h-6 w-auto object-contain" />
+                <img src="/brand/yipin-logo-h.png" alt="壹品整装" className="h-6 w-auto object-contain" />
                 <span className="h-4 w-px bg-black/10" />
                 <span className="text-[13px] font-semibold tracking-[-0.01em] text-[#1d1d1f]">
                   员工赋能平台
@@ -576,7 +594,9 @@ function AppViewport(props: {
                 aria-label="主导航"
                 className="no-scrollbar flex items-center gap-1 overflow-x-auto rounded-full bg-black/[0.045] p-1"
               >
-                {props.tabs.map((id) => {
+                {props.tabs
+                  .filter((id) => id !== "today")
+                  .map((id) => {
                   const active = props.screen === id;
                   return (
                     <button
@@ -678,15 +698,11 @@ function AppViewport(props: {
         <header className="apple-glass sticky top-0 z-30 flex h-12 shrink-0 items-center justify-between border-b border-black/[0.05] px-4">
           <button
             type="button"
+            aria-label="回到首页"
             onClick={() => props.onScreen("today")}
-            className="flex items-center gap-2"
+            className="flex items-center"
           >
-            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-[#1d1d1f] text-[11px] font-bold text-white">
-              壹
-            </span>
-            <span className="text-[15px] font-semibold tracking-[-0.01em] text-[#1d1d1f]">
-              {screenLabel(props.screen)}
-            </span>
+            <img src="/brand/yipin-logo-h.png" alt="壹品整装" className="h-5 w-auto" />
           </button>
 
           {/* WeChat Mini-Program Authentic Capsule */}
@@ -884,8 +900,8 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
     <div
       className={
         props.compact
-          ? "px-4 py-5 space-y-6"
-          : "mx-auto max-w-[1160px] px-6 py-10 space-y-12"
+          ? "space-y-14 px-5 py-8"
+          : "mx-auto max-w-[1160px] space-y-20 px-6 py-14"
       }
     >
       {/* 1. Brand & Company Hero (Apple Showcase Style) */}
@@ -893,29 +909,22 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
         <div className="relative">
           <div className="absolute inset-0">
             <img
-              src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1600&q=85"
-              alt="壹品整装实景美学空间"
-              className="h-full w-full object-cover opacity-52"
+              src="/home/hall-oak.jpg"
+              alt="高端客厅效果图"
+              className="h-full w-full object-cover"
             />
             <div
               className="absolute inset-0"
               style={{
                 background:
-                  "linear-gradient(110deg, rgba(16,16,18,0.92) 0%, rgba(16,16,18,0.72) 55%, rgba(16,16,18,0.28) 100%)"
+                  "linear-gradient(100deg, rgba(12,12,14,0.78) 0%, rgba(12,12,14,0.42) 48%, rgba(12,12,14,0.08) 100%)"
               }}
             />
           </div>
 
           <div className={`relative z-10 ${props.compact ? "p-6" : "px-12 pb-10 pt-12"}`}>
-            <div className="liquid-glass-dark inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12px] font-medium text-white/90">
-              <Award className="h-3.5 w-3.5 text-[#30d158]" />
-              <span>
-                {COMPANY_PROFILE.name} · {COMPANY_PROFILE.english}
-              </span>
-            </div>
-
             <h1
-              className={`mt-5 text-balance font-semibold tracking-[-0.03em] text-white ${
+              className={`text-balance font-semibold tracking-[-0.03em] text-white ${
                 props.compact ? "text-[30px] leading-[1.12]" : "text-[52px] leading-[1.05]"
               }`}
             >
@@ -991,21 +1000,20 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
       </section>
 
       {/* 2. Core Renovation Products Lineup — Official 美丽家 79,800起 & 尊贵家 99,800起 */}
-      <section id="home-products" className="space-y-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2
-              className={`font-semibold tracking-[-0.025em] text-[#1d1d1f] ${
-                props.compact ? "text-[22px]" : "text-[32px] leading-tight"
-              }`}
-            >
-              核心整装产品
-            </h2>
-            <p className="mt-1 text-[14px] text-[#6e6e73]">
-              两大主推整装配置，全套空间主材与严选辅材明细可查，支持随材料迭代随时在线更新。
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
+      <section id="home-products" className="space-y-8">
+        <div className="max-w-[36rem] space-y-3">
+          <h2
+            className={`font-semibold tracking-[-0.03em] text-[#1d1d1f] ${
+              props.compact ? "text-[32px] leading-[1.12]" : "text-[40px] leading-[1.08]"
+            }`}
+          >
+            核心整装产品
+          </h2>
+          <p className="text-[17px] leading-7 text-[#6e6e73]">
+            美丽家与尊贵家，主材明细可以打开查看。
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
             <button
               type="button"
               onClick={() => props.onOpenPackage("zunguijia", "compare")}
@@ -1023,9 +1031,8 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
               更新材料清单
             </button>
           </div>
-        </div>
 
-        <div className={`grid gap-6 ${props.compact ? "grid-cols-1" : "md:grid-cols-2"}`}>
+        <div className={`grid gap-8 ${props.compact ? "grid-cols-1" : "md:grid-cols-2"}`}>
           {props.packages.map((pkg) => {
             const totalItems = pkg.items.length;
             return (
@@ -1129,25 +1136,25 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
 
       {/* 3. Company Materials Showcase (Primary Visual Asset Library) */}
       {props.enabled.includes("library") && (
-        <section className="space-y-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2
-                className={`font-semibold tracking-[-0.025em] text-[#1d1d1f] ${
-                  props.compact ? "text-[22px]" : "text-[32px] leading-tight"
-                }`}
-              >
-                公司实景素材
-              </h2>
-              <p className="mt-1 text-[14px] text-[#6e6e73]">
-                同小区完工实拍、改造前后对比与活动海报，点开即可拖动对比或一键转发。
-              </p>
-            </div>
+        <section className="space-y-8">
+          <div className="max-w-[36rem] space-y-3">
+            <h2
+              className={`font-semibold tracking-[-0.03em] text-[#1d1d1f] ${
+                props.compact ? "text-[32px] leading-[1.12]" : "text-[40px] leading-[1.08]"
+              }`}
+            >
+              公司实景素材
+            </h2>
+            <p className="text-[17px] leading-7 text-[#6e6e73]">
+              完工实拍、改造对比和活动海报。
+            </p>
+          </div>
 
-            <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto pb-0.5">
+          <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
               {(
                 [
                   ["all", "全部"],
+                  ["competitor", "竞品对比"],
                   ["before_after", "实景对比"],
                   ["case", "完工案例"],
                   ["poster", "活动海报"]
@@ -1174,9 +1181,8 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
                 全部 ›
               </button>
             </div>
-          </div>
 
-          <div className={`grid gap-5 ${props.compact ? "grid-cols-1" : "md:grid-cols-2"}`}>
+          <div className={`grid gap-8 ${props.compact ? "grid-cols-1" : "md:grid-cols-2"}`}>
             {filteredMaterials.slice(0, 4).map((item) => (
               <article
                 key={item.id}
@@ -1199,7 +1205,9 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
                     {MATERIAL_TYPE_LABEL[item.type] || "实景素材"}
                   </span>
                   <span className="liquid-glass-dark absolute bottom-3 left-3.5 rounded-full px-3 py-1 text-[11px] font-medium text-white tabular-nums">
-                    {item.area_sqm}㎡ · 全包 {item.budget_wan} 万
+                    {item.type === "competitor"
+                      ? "内部 · 5 家对照"
+                      : `${item.area_sqm}㎡ · 全包 ${item.budget_wan} 万`}
                   </span>
                 </button>
 
@@ -1237,25 +1245,19 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
       )}
 
       {/* 4. Company Profile, Craft Guarantees & Partner Brands */}
-      <section className="liquid-glass-subtle rounded-[30px] p-6 sm:p-8">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-[12px] font-semibold text-[#007aff]">关于{COMPANY_PROFILE.name}</p>
-            <h2
-              className={`mt-1 font-semibold tracking-[-0.025em] text-[#1d1d1f] ${
-                props.compact ? "text-[22px]" : "text-[28px]"
-              }`}
-            >
-              为什么业主更放心把家交给我们
-            </h2>
-          </div>
-          <span className="inline-flex items-center gap-1.5 text-[12px] text-[#6e6e73]">
-            <MapPin className="h-3.5 w-3.5 text-[#007aff]" />
-            {COMPANY_PROFILE.showroom}
-          </span>
+      <section className="space-y-8">
+        <div className="max-w-[36rem] space-y-3">
+          <h2
+            className={`font-semibold tracking-[-0.03em] text-[#1d1d1f] ${
+              props.compact ? "text-[32px] leading-[1.12]" : "text-[40px] leading-[1.08]"
+            }`}
+          >
+            为什么业主更放心
+          </h2>
+          <p className="text-[17px] leading-7 text-[#6e6e73]">{COMPANY_PROFILE.showroom}</p>
         </div>
 
-        <div className={`mt-6 grid gap-3.5 ${props.compact ? "grid-cols-1" : "md:grid-cols-2 lg:grid-cols-4"}`}>
+        <div className={`grid gap-4 ${props.compact ? "grid-cols-1" : "md:grid-cols-2 lg:grid-cols-4"}`}>
           {COMPANY_PROFILE.pillars.map((pillar, index) => (
             <div key={pillar.title} className="rounded-[22px] bg-[#f2f2f7]/80 p-4">
               <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white text-[12px] font-semibold text-[#1d1d1f] tabular-nums shadow-xs">
@@ -1301,19 +1303,21 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
       </section>
 
       {/* 5. Compact Employee Micro-Tools Bar (Evidence Chain as a compact utility!) */}
-      <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-[15px] font-semibold text-[#1d1d1f]">员工常用小工具</h2>
+      <section className="space-y-6">
+        <div className="flex items-end justify-between gap-4">
+          <h2 className={`font-semibold tracking-[-0.03em] text-[#1d1d1f] ${props.compact ? "text-[32px]" : "text-[40px]"}`}>
+            常用工具
+          </h2>
           <button
             type="button"
             onClick={props.onOpenDrawer}
-            className="text-[12px] font-medium text-[#007aff]"
+            className="shrink-0 text-[15px] font-medium text-[#007aff]"
           >
-            增删工具模块 ›
+            增删模块
           </button>
         </div>
 
-        <div className={`grid gap-3 ${props.compact ? "grid-cols-2" : "grid-cols-2 lg:grid-cols-4"}`}>
+        <div className={`grid gap-4 ${props.compact ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-4"}`}>
           {[
             {
               title: "证据链存证",
@@ -1353,8 +1357,8 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
               }
             },
             {
-              title: "同小区看工地",
-              sub: `${SITE_BROADCASTS.length} 套在建实景可约`,
+              title: "工地管理",
+              sub: `${ACTIVE_SITES.length} 套在施 · ${COMPLETED_SITES.length} 套完工`,
               icon: HardHat,
               color: "bg-[#ff9500]/12 text-[#d47a00]",
               onClick: () => {
@@ -1369,9 +1373,7 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
                 key={tool.title}
                 type="button"
                 onClick={tool.onClick}
-                className={`ios-press ios-card-hover liquid-glass-subtle rounded-[22px] p-4 text-left ${
-                  props.compact ? "flex flex-col items-start gap-2.5" : "flex items-center gap-3.5"
-                }`}
+                className="ios-press ios-card-hover liquid-glass-subtle flex items-center gap-4 rounded-[24px] p-5 text-left"
               >
                 <span
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${tool.color}`}
@@ -1379,7 +1381,7 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
                   <Icon className="h-5 w-5" />
                 </span>
                 <span className="min-w-0">
-                  <span className="block text-[14px] font-semibold text-[#1d1d1f]">
+                  <span className="block text-[17px] font-semibold text-[#1d1d1f]">
                     {tool.title}
                   </span>
                   <span className="mt-0.5 block text-[12px] text-[#6e6e73]">{tool.sub}</span>
@@ -1396,10 +1398,10 @@ function TodayShowcase(props: React.ComponentProps<typeof AppViewport>) {
 function MoreSheet(props: React.ComponentProps<typeof AppViewport>) {
   const extra = props.tabs.filter((id) => id !== "today").slice(3);
   return (
-    <div className="px-4 py-6 space-y-5">
-      <div>
-        <h1 className="text-[26px] font-semibold tracking-[-0.025em] text-[#1d1d1f]">更多工具</h1>
-        <p className="mt-1 text-[13px] text-[#6e6e73]">已开启的扩展能力模块</p>
+    <div className="space-y-8 px-5 py-8">
+      <div className="space-y-3">
+        <h1 className="text-[34px] font-semibold leading-[1.12] tracking-[-0.03em] text-[#1d1d1f]">更多</h1>
+        <p className="text-[17px] leading-7 text-[#6e6e73]">已打开的其他功能。</p>
       </div>
 
       <div className="liquid-glass-subtle divide-y divide-black/[0.06] overflow-hidden rounded-[24px]">

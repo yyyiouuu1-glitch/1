@@ -5,6 +5,8 @@ import {
   ArrowLeftRight,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Copy,
   Edit3,
@@ -54,7 +56,7 @@ export default function PackageConfigModal({
 }: Props) {
   const pkg = packages.find((p) => p.id === activePackageId) ?? packages[0];
   const [tab, setTab] = useState<TabId>(initialTab);
-  const [room, setRoom] = useState<RoomKey>("厨房空间");
+  const [room, setRoom] = useState<RoomKey>(ROOM_KEYS[0]);
   const [editMode, setEditMode] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
@@ -69,6 +71,8 @@ export default function PackageConfigModal({
   const [changeNote, setChangeNote] = useState("");
   const [copied, setCopied] = useState(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const carouselRef = useRef<HTMLDivElement | null>(null);
+  const dragStartRef = useRef<{ x: number; scrollLeft: number } | null>(null);
 
   // Lock background page & phone-preview container scrolling while modal is open
   useEffect(() => {
@@ -114,13 +118,35 @@ export default function PackageConfigModal({
     if (scrollRef.current) {
       scrollRef.current.scrollTop = 0;
     }
-  }, [tab, room, pkg.id]);
+  }, [tab, pkg.id]);
 
   const roomItems = useMemo(
     () => pkg.items.filter((item) => item.room === room),
     [pkg.items, room]
   );
-  const activeRoomVisual = ROOM_VISUALS[pkg.id][room];
+
+  const activeRoomIndex = Math.max(0, ROOM_KEYS.indexOf(room));
+
+  function scrollToRoom(targetRoom: RoomKey) {
+    const idx = ROOM_KEYS.indexOf(targetRoom);
+    setRoom(targetRoom);
+    setEditingId(null);
+    const el = carouselRef.current;
+    if (el && idx >= 0) {
+      el.scrollTo({ left: idx * el.clientWidth, behavior: "smooth" });
+    }
+  }
+
+  function handleCarouselScroll() {
+    const el = carouselRef.current;
+    if (!el || el.clientWidth === 0) return;
+    const idx = Math.round(el.scrollLeft / el.clientWidth);
+    const nextRoom = ROOM_KEYS[Math.max(0, Math.min(ROOM_KEYS.length - 1, idx))];
+    if (nextRoom && nextRoom !== room) {
+      setRoom(nextRoom);
+      setEditingId(null);
+    }
+  }
 
   function startEdit(item: PackageMaterialItem) {
     setEditingId(item.id);
@@ -342,10 +368,7 @@ export default function PackageConfigModal({
                       <button
                         key={rk}
                         type="button"
-                        onClick={() => {
-                          setRoom(rk);
-                          setEditingId(null);
-                        }}
+                        onClick={() => scrollToRoom(rk)}
                         className={`ios-press inline-flex h-10 shrink-0 items-center gap-2 rounded-full pl-1.5 pr-3.5 text-[12px] font-medium ${
                           active
                             ? "bg-[#007aff] text-white shadow-sm"
@@ -375,32 +398,6 @@ export default function PackageConfigModal({
                     新增{room}材料
                   </button>
                 )}
-              </div>
-
-              {/* Active Room Showcase Visual */}
-              <div className="relative overflow-hidden rounded-[24px] bg-[#e5e5ea] shadow-sm">
-                <div className="relative aspect-[16/6.5] min-h-[156px] w-full overflow-hidden">
-                  <img
-                    key={`${pkg.id}-${room}`}
-                    src={activeRoomVisual.image}
-                    alt={`${pkg.name} ${room}`}
-                    className="h-full w-full object-cover transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10" />
-                  <div className="absolute left-4 top-3.5 flex items-center gap-2">
-                    <span className="liquid-glass-dark rounded-full px-3 py-1 text-[11px] font-medium text-white">
-                      {pkg.name} · {room}
-                    </span>
-                    <span className="liquid-glass-dark rounded-full px-2.5 py-1 text-[11px] font-medium text-white/90 tabular-nums">
-                      共 {roomItems.length} 项配置
-                    </span>
-                  </div>
-                  <div className="absolute bottom-3.5 left-4 right-4 text-white">
-                    <p className="text-[13px] font-medium leading-5 text-white/95">
-                      {activeRoomVisual.caption}
-                    </p>
-                  </div>
-                </div>
               </div>
 
               {adding && editMode && (
@@ -449,110 +446,211 @@ export default function PackageConfigModal({
                 </form>
               )}
 
-              <div className="divide-y divide-black/[0.06] overflow-hidden rounded-[22px] bg-white/90">
-                {roomItems.map((item) => {
-                  const isEditing = editMode && editingId === item.id;
-                  if (isEditing) {
+              {/* Unified Horizontal Swipeable Room Card Carousel (Image + Materials together) */}
+              <div className="relative">
+                <div
+                  ref={carouselRef}
+                  onScroll={handleCarouselScroll}
+                  onMouseDown={(e) => {
+                    const target = e.target as HTMLElement;
+                    if (target.closest("input, textarea, select, button")) return;
+                    const el = carouselRef.current;
+                    if (!el) return;
+                    dragStartRef.current = { x: e.clientX, scrollLeft: el.scrollLeft };
+                  }}
+                  onMouseMove={(e) => {
+                    const el = carouselRef.current;
+                    const drag = dragStartRef.current;
+                    if (!el || !drag) return;
+                    el.scrollLeft = drag.scrollLeft - (e.clientX - drag.x);
+                  }}
+                  onMouseUp={() => {
+                    dragStartRef.current = null;
+                  }}
+                  onMouseLeave={() => {
+                    dragStartRef.current = null;
+                  }}
+                  className="no-scrollbar flex w-full cursor-grab items-start snap-x snap-mandatory overflow-x-auto scroll-smooth active:cursor-grabbing"
+                >
+                  {ROOM_KEYS.map((rk, idx) => {
+                    const visual = ROOM_VISUALS[pkg.id][rk];
+                    const itemsForRoom = pkg.items.filter((i) => i.room === rk);
                     return (
-                      <div key={item.id} className="space-y-2.5 bg-[#007aff]/[0.04] p-4">
-                        <div className="grid gap-2 sm:grid-cols-3">
-                          <input
-                            value={draftName}
-                            onChange={(e) => setDraftName(e.target.value)}
-                            placeholder="项目名称"
-                            className="h-9 rounded-xl bg-white px-3 text-[13px] ring-1 ring-black/10"
+                      <div
+                        key={`${pkg.id}-${rk}`}
+                        className="w-full shrink-0 snap-center overflow-hidden rounded-[24px] bg-white/95 shadow-sm ring-1 ring-black/[0.06]"
+                      >
+                        {/* Top Space Visual */}
+                        <div className="relative aspect-[16/9] max-h-[260px] min-h-[195px] w-full select-none overflow-hidden bg-[#e5e5ea]">
+                          <img
+                            src={visual.image}
+                            alt={`${pkg.name} ${rk}`}
+                            draggable={false}
+                            className="h-full w-full object-cover"
                           />
-                          <input
-                            value={draftBrand}
-                            onChange={(e) => setDraftBrand(e.target.value)}
-                            placeholder="品牌"
-                            className="h-9 rounded-xl bg-white px-3 text-[13px] ring-1 ring-black/10"
-                          />
-                          <input
-                            value={draftTag}
-                            onChange={(e) => setDraftTag(e.target.value)}
-                            placeholder="标签（如：新升级）"
-                            className="h-9 rounded-xl bg-white px-3 text-[13px] ring-1 ring-black/10"
-                          />
-                        </div>
-                        <input
-                          value={draftSpec}
-                          onChange={(e) => setDraftSpec(e.target.value)}
-                          placeholder="规格与工艺说明"
-                          className="h-9 w-full rounded-xl bg-white px-3 text-[13px] ring-1 ring-black/10"
-                        />
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <input
-                            value={changeNote}
-                            onChange={(e) => setChangeNote(e.target.value)}
-                            placeholder="可选：填写本次材料更新原因，写入变更记录"
-                            className="h-8 flex-1 rounded-xl bg-white px-3 text-[12px] ring-1 ring-black/10"
-                          />
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => setEditingId(null)}
-                              className="h-8 rounded-full px-3 text-[12px] text-[#6e6e73]"
-                            >
-                              取消
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => saveItemEdit(item.id)}
-                              className="inline-flex h-8 items-center gap-1 rounded-full bg-[#007aff] px-3.5 text-[12px] font-medium text-white"
-                            >
-                              <Save className="h-3.5 w-3.5" />
-                              保存并同步
-                            </button>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/20" />
+                          <div className="absolute left-4 top-3.5 flex items-center gap-2">
+                            <span className="liquid-glass-dark rounded-full px-3 py-1 text-[11.5px] font-medium text-white">
+                              {pkg.name} · {rk}
+                            </span>
+                            <span className="liquid-glass-dark rounded-full px-2.5 py-1 text-[11px] font-medium text-white/90 tabular-nums">
+                              共 {itemsForRoom.length} 项配置
+                            </span>
                           </div>
+
+                          {/* Pagination Dots */}
+                          <div className="pointer-events-none absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5">
+                            {ROOM_KEYS.map((dotRoom, dotIdx) => (
+                              <button
+                                key={dotRoom}
+                                type="button"
+                                aria-label={`切换到${dotRoom}`}
+                                onClick={() => scrollToRoom(dotRoom)}
+                                className={`pointer-events-auto h-1.5 rounded-full transition-all ${
+                                  dotIdx === idx ? "w-5 bg-white shadow-xs" : "w-1.5 bg-white/55"
+                                }`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Attached Material & Brand Specs Grid (Slides Together With Image) */}
+                        <div className="grid grid-cols-1 divide-y divide-black/[0.06] sm:grid-cols-2 sm:divide-y-0">
+                          {itemsForRoom.map((item) => {
+                            const isEditing = editMode && editingId === item.id;
+                            if (isEditing) {
+                              return (
+                                <div
+                                  key={item.id}
+                                  className="space-y-2.5 border-b border-black/[0.06] bg-[#007aff]/[0.04] p-4 sm:col-span-2"
+                                >
+                                  <div className="grid gap-2 sm:grid-cols-3">
+                                    <input
+                                      value={draftName}
+                                      onChange={(e) => setDraftName(e.target.value)}
+                                      placeholder="项目名称"
+                                      className="h-9 rounded-xl bg-white px-3 text-[13px] ring-1 ring-black/10"
+                                    />
+                                    <input
+                                      value={draftBrand}
+                                      onChange={(e) => setDraftBrand(e.target.value)}
+                                      placeholder="品牌"
+                                      className="h-9 rounded-xl bg-white px-3 text-[13px] ring-1 ring-black/10"
+                                    />
+                                    <input
+                                      value={draftTag}
+                                      onChange={(e) => setDraftTag(e.target.value)}
+                                      placeholder="标签（如：新升级）"
+                                      className="h-9 rounded-xl bg-white px-3 text-[13px] ring-1 ring-black/10"
+                                    />
+                                  </div>
+                                  <input
+                                    value={draftSpec}
+                                    onChange={(e) => setDraftSpec(e.target.value)}
+                                    placeholder="规格与工艺说明"
+                                    className="h-9 w-full rounded-xl bg-white px-3 text-[13px] ring-1 ring-black/10"
+                                  />
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <input
+                                      value={changeNote}
+                                      onChange={(e) => setChangeNote(e.target.value)}
+                                      placeholder="可选：填写本次材料更新原因，写入变更记录"
+                                      className="h-8 flex-1 rounded-xl bg-white px-3 text-[12px] ring-1 ring-black/10"
+                                    />
+                                    <div className="flex items-center gap-1.5">
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditingId(null)}
+                                        className="h-8 rounded-full px-3 text-[12px] text-[#6e6e73]"
+                                      >
+                                        取消
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => saveItemEdit(item.id)}
+                                        className="inline-flex h-8 items-center gap-1 rounded-full bg-[#007aff] px-3.5 text-[12px] font-medium text-white"
+                                      >
+                                        <Save className="h-3.5 w-3.5" />
+                                        保存并同步
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <div
+                                key={item.id}
+                                className="flex items-start justify-between gap-3 border-black/[0.06] px-4 py-3 sm:border-b sm:odd:border-r"
+                              >
+                                <div className="min-w-0 flex-1 space-y-1">
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <span className="text-[13.5px] font-semibold text-[#1d1d1f]">
+                                      {item.name}
+                                    </span>
+                                    {item.updatedTag && (
+                                      <span className="rounded-full bg-[#007aff]/10 px-2 py-0.5 text-[10px] font-semibold text-[#007aff]">
+                                        {item.updatedTag}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[12.5px] font-medium leading-snug text-[#1d1d1f]/85">
+                                    {item.brand}
+                                  </p>
+                                  <p className="text-[11.5px] leading-snug text-[#6e6e73]">
+                                    {item.spec}
+                                  </p>
+                                </div>
+                                {editMode && (
+                                  <div className="flex shrink-0 items-center gap-1 pt-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => startEdit(item)}
+                                      className="rounded-full bg-[#f2f2f7] px-2.5 py-1 text-[11.5px] font-medium text-[#1d1d1f] hover:bg-[#007aff] hover:text-white"
+                                    >
+                                      修改
+                                    </button>
+                                    <button
+                                      type="button"
+                                      aria-label={`删除 ${item.name}`}
+                                      onClick={() => deleteItem(item)}
+                                      className="flex h-6 w-6 items-center justify-center rounded-full bg-[#ff3b30]/10 text-[#ff3b30]"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     );
-                  }
+                  })}
+                </div>
 
-                  return (
-                    <div
-                      key={item.id}
-                      className="flex flex-col gap-2 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between"
-                    >
-                      <div className="min-w-0 sm:w-36 sm:shrink-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[14px] font-semibold text-[#1d1d1f]">
-                            {item.name}
-                          </span>
-                          {item.updatedTag && (
-                            <span className="rounded-full bg-[#007aff]/10 px-2 py-0.5 text-[10px] font-semibold text-[#007aff]">
-                              {item.updatedTag}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[13px] font-medium text-[#1d1d1f]">{item.brand}</p>
-                        <p className="mt-0.5 text-[12px] text-[#6e6e73]">{item.spec}</p>
-                      </div>
-                      {editMode && (
-                        <div className="flex shrink-0 items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(item)}
-                            className="rounded-full bg-[#f2f2f7] px-3 py-1 text-[12px] font-medium text-[#1d1d1f] hover:bg-[#007aff] hover:text-white"
-                          >
-                            修改
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`删除 ${item.name}`}
-                            onClick={() => deleteItem(item)}
-                            className="flex h-7 w-7 items-center justify-center rounded-full bg-[#ff3b30]/10 text-[#ff3b30]"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                {/* Left / Right Quick Slide Arrows (centered on image area) */}
+                {activeRoomIndex > 0 && (
+                  <button
+                    type="button"
+                    aria-label="上一个空间"
+                    onClick={() => scrollToRoom(ROOM_KEYS[activeRoomIndex - 1])}
+                    className="ios-press absolute left-3 top-[115px] flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition hover:bg-black/60 sm:top-[130px]"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+                )}
+                {activeRoomIndex < ROOM_KEYS.length - 1 && (
+                  <button
+                    type="button"
+                    aria-label="下一个空间"
+                    onClick={() => scrollToRoom(ROOM_KEYS[activeRoomIndex + 1])}
+                    className="ios-press absolute right-3 top-[115px] flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition hover:bg-black/60 sm:top-[130px]"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                )}
               </div>
 
               {/* Change Log */}

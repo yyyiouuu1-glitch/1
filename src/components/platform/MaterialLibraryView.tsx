@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import BeforeAfterSlider from "./BeforeAfterSlider";
 import { MATERIAL_TYPE_LABEL } from "@/lib/platform";
-import { Material } from "@/lib/types";
+import { CompetitorCompare, Material } from "@/lib/types";
 
 type Props = {
   materials: Material[];
@@ -85,36 +85,37 @@ export default function MaterialLibraryView({
   }
 
   return (
-    <div className={compact ? "px-4 py-6" : "mx-auto max-w-[1120px] px-6 py-12"}>
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
+    <div className={compact ? "space-y-10 px-5 py-8" : "mx-auto max-w-[1120px] space-y-12 px-6 py-14"}>
+      <header className="max-w-[36rem] space-y-6">
+        <div className="space-y-3">
           <h1
-            className={`font-semibold tracking-[-0.025em] text-[#1d1d1f] ${
-              compact ? "text-[26px]" : "text-[40px] leading-[1.08]"
+            className={`font-semibold tracking-[-0.03em] text-[#1d1d1f] ${
+              compact ? "text-[34px] leading-[1.12]" : "text-[48px] leading-[1.05]"
             }`}
           >
             公司素材库
           </h1>
-          <p className="mt-2 max-w-[38rem] text-[15px] leading-relaxed text-[#6e6e73]">
-            总部企划与设计部统一出品的实景案例、改造对比与活动海报。按小区或风格秒搜，进门即展示。
+          <p className="text-[17px] leading-7 text-[#6e6e73]">
+            实景案例、改造对比、活动海报，以及谈单时用的竞品对照。
           </p>
         </div>
 
-        <label className="relative block w-full md:w-72">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6e6e73]" />
+        <label className="relative block w-full">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6e6e73]" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="搜小区、风格或面积"
-            className="h-10 w-full rounded-full bg-[#f5f5f7] pl-10 pr-4 text-[14px] text-[#1d1d1f] placeholder:text-[#6e6e73] transition focus:bg-white focus:ring-1 focus:ring-black/15"
+            className="h-12 w-full rounded-full bg-[#f5f5f7] pl-11 pr-5 text-[16px] text-[#1d1d1f] placeholder:text-[#6e6e73] transition focus:bg-white focus:ring-1 focus:ring-black/15"
           />
         </label>
-      </div>
+      </header>
 
-      <div className="no-scrollbar mt-6 flex items-center gap-2 overflow-x-auto pb-1">
+      <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
         {(
           [
             ["all", `全部 (${materials.length})`],
+            ["competitor", "竞品对比"],
             ["before_after", "实景对比"],
             ["case", "实景案例"],
             ["poster", "活动海报"],
@@ -218,8 +219,17 @@ export default function MaterialLibraryView({
                     </button>
 
                     <div className="mt-3 flex flex-wrap gap-2 text-[12px] text-[#1d1d1f] tabular-nums">
-                      <span className="rounded-full bg-white px-2.5 py-1">{item.area_sqm}㎡</span>
-                      <span className="rounded-full bg-white px-2.5 py-1">全包 {item.budget_wan} 万</span>
+                      {item.type === "competitor" ? (
+                        <>
+                          <span className="rounded-full bg-white px-2.5 py-1">5 家对照</span>
+                          <span className="rounded-full bg-white px-2.5 py-1">内部谈单</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="rounded-full bg-white px-2.5 py-1">{item.area_sqm}㎡</span>
+                          <span className="rounded-full bg-white px-2.5 py-1">全包 {item.budget_wan} 万</span>
+                        </>
+                      )}
                       <span className="rounded-full bg-white px-2.5 py-1 text-[#6e6e73]">
                         {item.created_by}
                       </span>
@@ -238,7 +248,7 @@ export default function MaterialLibraryView({
                       onClick={() => onSelect(item.id)}
                       className="inline-flex items-center gap-1 text-[14px] font-medium text-[#0071e3] hover:underline"
                     >
-                      查看实景与话术
+                      {item.type === "competitor" ? "打开对照表" : "查看实景与话术"}
                       <ArrowUpRight className="h-4 w-4" />
                     </button>
                     {canUseInClose && (
@@ -284,13 +294,15 @@ function MaterialDetail({
   const [copied, setCopied] = useState(false);
 
   const activeText = material.content_json[channel] || material.content_json.sales_script || "";
+  const compare = material.content_json.compare;
+  const isCompare = material.type === "competitor" && Boolean(compare);
 
   async function copyCurrent() {
     if (!activeText) return;
     try {
       await navigator.clipboard.writeText(activeText);
       setCopied(true);
-      onNotify("话术文案已复制，可直接发给业主");
+      onNotify(isCompare ? "内部话术已复制" : "话术文案已复制，可直接发给业主");
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
       setCopied(false);
@@ -334,7 +346,9 @@ function MaterialDetail({
 
       <div className="mt-6">
         <p className="text-[13px] font-medium text-[#6e6e73]">
-          {material.community_name} · {material.style} · {material.area_sqm}㎡ · 落地 {material.budget_wan} 万
+          {isCompare
+            ? `我们 · 壹品整装 · 对照东箭 / 星艺 / 靓家居 / 清包`
+            : `${material.community_name} · ${material.style} · ${material.area_sqm}㎡ · 落地 ${material.budget_wan} 万`}
         </p>
         <h1
           className={`mt-2 font-semibold tracking-[-0.025em] text-[#1d1d1f] ${
@@ -345,28 +359,34 @@ function MaterialDetail({
         </h1>
       </div>
 
-      <div className="mt-6">
-        {material.before_image && material.after_image ? (
-          <BeforeAfterSlider
-            beforeUrl={material.before_image}
-            afterUrl={material.after_image}
-            title={material.title}
-            compact={compact}
-          />
-        ) : (
-          <img
-            src={material.after_image || material.before_image}
-            alt={material.title}
-            className="aspect-[16/9] w-full rounded-2xl object-cover"
-          />
-        )}
-      </div>
+      {isCompare && compare ? (
+        <CompetitorSheet compare={compare} compact={compact} />
+      ) : (
+        <div className="mt-6">
+          {material.before_image && material.after_image ? (
+            <BeforeAfterSlider
+              beforeUrl={material.before_image}
+              afterUrl={material.after_image}
+              title={material.title}
+              compact={compact}
+            />
+          ) : (
+            <img
+              src={material.after_image || material.before_image}
+              alt={material.title}
+              className="aspect-[16/9] w-full rounded-2xl object-cover"
+            />
+          )}
+        </div>
+      )}
 
       <section className="mt-8 rounded-2xl bg-[#f5f5f7] p-5 sm:p-7">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-[#0071e3]" />
-            <h2 className="text-[16px] font-semibold text-[#1d1d1f]">配套转发与谈单话术</h2>
+            <h2 className="text-[16px] font-semibold text-[#1d1d1f]">
+              {isCompare ? "内部话术，不要发到公域" : "配套转发与谈单话术"}
+            </h2>
           </div>
 
           <div className="flex flex-wrap gap-1.5">
@@ -396,7 +416,9 @@ function MaterialDetail({
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <span className="text-[12px] text-[#6e6e73]">
-            转发小程序卡片时将自动带上你的专属顾问名片与留资归因
+            {isCompare
+              ? "复制后只在谈单和内部培训里用，公域不要点名别的公司"
+              : "转发小程序卡片时将自动带上你的专属顾问名片与留资归因"}
           </span>
           <button
             type="button"
@@ -409,5 +431,86 @@ function MaterialDetail({
         </div>
       </section>
     </div>
+  );
+}
+
+function CompetitorSheet({
+  compare,
+  compact
+}: {
+  compare: CompetitorCompare;
+  compact: boolean;
+}) {
+  return (
+    <section className="mt-6">
+      <p className="text-[13px] leading-relaxed text-[#6e6e73]">{compare.note}</p>
+
+      {compact ? (
+        <div className="mt-4 space-y-3">
+          {compare.rows.map((row) => (
+            <article key={row.item} className="rounded-[22px] bg-[#f5f5f7] p-4">
+              <h2 className="text-[16px] font-semibold text-[#1d1d1f]">{row.item}</h2>
+              <div className="mt-3 space-y-2">
+                {compare.columns.map((column) => (
+                  <div
+                    key={column.key}
+                    className={`rounded-2xl p-3 ${
+                      column.ours ? "bg-[#1d1d1f] text-white" : "bg-white text-[#1d1d1f]"
+                    }`}
+                  >
+                    <p className={`text-[12px] font-medium ${column.ours ? "text-white/70" : "text-[#6e6e73]"}`}>
+                      {column.name} · {column.hint}
+                    </p>
+                    <p className="mt-1 text-[13px] leading-relaxed">{row.cells[column.key]}</p>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-4 overflow-x-auto rounded-[22px] bg-[#f5f5f7] p-2">
+          <table className="w-full min-w-[920px] border-separate border-spacing-0 text-left">
+            <thead>
+              <tr>
+                <th className="sticky left-0 z-10 bg-[#f5f5f7] px-4 py-3 text-[12px] font-medium text-[#6e6e73]">
+                  对比项
+                </th>
+                {compare.columns.map((column) => (
+                  <th
+                    key={column.key}
+                    className={`px-4 py-3 text-[13px] font-semibold ${
+                      column.ours ? "text-[#0071e3]" : "text-[#1d1d1f]"
+                    }`}
+                  >
+                    {column.name}
+                    <span className="mt-0.5 block text-[11px] font-medium text-[#6e6e73]">{column.hint}</span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {compare.rows.map((row) => (
+                <tr key={row.item}>
+                  <th className="sticky left-0 z-10 border-t border-black/[0.06] bg-[#f5f5f7] px-4 py-3 text-[13px] font-semibold text-[#1d1d1f]">
+                    {row.item}
+                  </th>
+                  {compare.columns.map((column) => (
+                    <td
+                      key={column.key}
+                      className={`border-t border-black/[0.06] px-4 py-3 align-top text-[13px] leading-relaxed ${
+                        column.ours ? "bg-white font-medium text-[#1d1d1f]" : "text-[#3a3a3c]"
+                      }`}
+                    >
+                      {row.cells[column.key]}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </section>
   );
 }

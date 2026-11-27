@@ -13,8 +13,7 @@ const LIGHTINGS = ["3000K 温馨暖光", "4000K 自然暖白", "5000K 清透日�
 
 const DEFAULT_BEFORE =
   "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1400&q=80";
-const DEFAULT_AFTER =
-  "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1400&q=85";
+const DEFAULT_AFTER = "/home/hall-white.jpg";
 
 export default function SpaceTransformStudio({ onPublished }: SpaceStudioProps) {
   const [beforeImg, setBeforeImg] = useState(DEFAULT_BEFORE);
